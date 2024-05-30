@@ -16,7 +16,7 @@ namespace HNSWLab {
     class HNSW : public AlgorithmInterface {
     public:
         HNSW(int M, int efConstruction, int m_L);
-
+        HNSW() : HNSW(30,100,30) {}
         void insert(const int *item, int label) override;
         std::vector<int> query(const int *query, int k) override;
         ~HNSW() {}
@@ -68,8 +68,8 @@ namespace HNSWLab {
         std::priority_queue<std::pair<float, int>> top_candidates;
 
         if (entry_points[level] != -1) {
-            candidates.push({distance(query, nodes[entry_points[level]].data.data(), nodes[entry_points[level]].data.size()), entry_points[level]});
-            top_candidates.push({distance(query, nodes[entry_points[level]].data.data(), nodes[entry_points[level]].data.size()), entry_points[level]});
+            candidates.push(std::make_pair(distance(query, nodes[entry_points[level]].data.data(), nodes[entry_points[level]].data.size()), entry_points[level]));
+            top_candidates.push(std::make_pair(distance(query, nodes[entry_points[level]].data.data(), nodes[entry_points[level]].data.size()), entry_points[level]));
             visited.insert(entry_points[level]);
         }
 
@@ -86,8 +86,8 @@ namespace HNSWLab {
 
                     float dist = distance(query, nodes[neighbor].data.data(), nodes[neighbor].data.size());
                     if (dist < top_candidates.top().first || top_candidates.size() < efConstruction) {
-                        candidates.push({dist, neighbor});
-                        top_candidates.push({dist, neighbor});
+                        candidates.push(std::make_pair(dist, neighbor));
+                        top_candidates.push(std::make_pair(dist, neighbor));
                         if (top_candidates.size() > efConstruction) {
                             top_candidates.pop();
                         }
@@ -115,9 +115,9 @@ namespace HNSWLab {
                 // If the neighbor list is full, we need to maintain only the closest M neighbors
                 std::priority_queue<std::pair<float, int>> neighbor_candidates;
                 for (int n : nodes[neighbor].neighbors[level]) {
-                    neighbor_candidates.push({distance(nodes[neighbor].data.data(), nodes[n].data.data(), nodes[n].data.size()), n});
+                    neighbor_candidates.push(std::make_pair(distance(nodes[neighbor].data.data(), nodes[n].data.data(), nodes[n].data.size()), n));
                 }
-                neighbor_candidates.push({distance(nodes[neighbor].data.data(), nodes[node_index].data.data(), nodes[node_index].data.size()), node_index});
+                neighbor_candidates.push(std::make_pair(distance(nodes[neighbor].data.data(), nodes[node_index].data.data(), nodes[node_index].data.size()), node_index));
                 std::vector<int> new_neighbors;
                 while (!neighbor_candidates.empty() && new_neighbors.size() < M) {
                     new_neighbors.push_back(neighbor_candidates.top().second);
